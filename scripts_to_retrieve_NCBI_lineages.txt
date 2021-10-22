@@ -1,0 +1,65 @@
+#Below are command line to retrieve taxonomy lineage from NCBI databse from list of accession number
+
+#Previous works
+#I run QIIME to retrieve SVs, sequence and abundance
+#II filter abundance greater than 10, only bacteria or archaea
+#III. Blast SV fasta sequence to NCBI 16S RNA databse (bacteria and Archaea)
+
+
+
+
+
+###NCBI_output
+#  OTU	accession.version	identity	alignment_length	mismatches	gap_opens	q._start	q._end	s._start	s._end	evalue	bit_score
+#	8cb24777cb48dde0aac60dfeca125d10	NR_121761.1	100.000	428	0	0	1	428	356	783	0.0	791
+#	8cb24777cb48dde0aac60dfeca125d10	NR_113996.1	100.000	428	0	0	1	428	339	766	0.0	791
+#	8cb24777cb48dde0aac60dfeca125d10	NR_113991.1	100.000	428	0	0	1	428	339	766	0.0	791
+
+#1 Extract the list of accession.version, one accession per line: 
+	cut -f 2 NCBI_output > accession.list
+
+#2 Find the taxid ID correspond to accession
+  grep -wFf  accession.list nucl_gb.accession2taxid > taxid_table
+  
+	#accession	accession.version	tax_id	gi
+	#NG_041941	NG_041941.1	944479	756808612
+	#NG_041947	NG_041947.1	394503	785794309
+	#NG_042070	NG_042070.1	86170	806984338
+  
+  
+#3 Extract the taxid list from taxid_table to search for taxonomy lineage
+  
+  cut -f 3 taxid_table > taxid_list
+  
+  grep -wFf taxid_list ncbi_lineages_2021-10-11.csv > ligneage_table
+  
+  
+ cat head_ncbi_lineages ligneage_table > ligneage_table_with_header.txt
+ 
+ 
+ 
+ ###Then merge all the table together using R command
+ ##Create_taxonomy_table_from_blastNCBI_16S_RNA
+setwd("D:/PLANET/Mg_endosymbioint/endosymbioint_roots_galls_nem/Mg_endo_16S_274_210_raw")
+
+blast_hit <- read.table("Endo_bacte_all_OTU_greater_than10_ncm.txt", sep = "\t", header = T, quote="", stringsAsFactors = FALSE)
+
+
+tax_id <- read.table("Endo_bacte_all_OTU_greater_than10_ncm_taxid.txt", sep = "\t", header = T, quote="", stringsAsFactors = FALSE)
+
+tax_lig <- read.csv("Endo_bacte_all_OTU_greater_than10_ncm_lig.txt", sep = "\t", header = T, quote="", stringsAsFactors = FALSE) 
+tax_table <- left_join(blast_hit, tax_id, by="accession.version")
+tax_lig_table <- left_join(tax_table, tax_lig, by="tax_id")
+write.table(tax_lig_table, "104_seqs_tax_lig_table.txt" , sep = "\t", quote=F, row.names = F, col.names = T)
+
+tax_lig_table_2 <- tax_lig_table %>% 
+  rowwise() %>% 
+  group_by(OTU) %>% 
+  dplyr::arrange(desc(identity)) %>% 
+  slice_head(n=1) %>% 
+  dplyr::select(OTU,identity,accession.version,tax_id,gi,phylum,class,order,family,genus,species)
+
+tax_lig_table_OTU <- left_join(tax_lig_table_2, otu_mat, by="OTU")
+
+write.table(tax_lig_table_2, "taxonomy_NCBI_with_OTU.txt")
+ 
