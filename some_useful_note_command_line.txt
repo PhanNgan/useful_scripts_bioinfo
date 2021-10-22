@@ -1,0 +1,228 @@
+#To test auqlity of maped file and coveragz
+qualimap bamqc -bam file.bam -outfile result.pdf
+
+#to extract read from bam files
+
+samtools fasta input.bam -F 4 > output.fasta
+
+#To trim the sequence:
+skewer \
+-n \         # Remove reads with a lot of N’s
+-q 20 \      # Trim reads until Q20 is reached
+-l 51 \      # Minimum read length allowed
+-t 16 \      # No. of threads
+-m pe \      # Mode Paired-End
+-o prefix \      # Prefix of output files
+[top_dir]/raw_data/[pe1] [top_dir]/raw_data/[pe2]  # One pair at a time
+#To clean the sequence:
+
+
+samtools view -Sb  <SAMFILE>  >  <BAMFILE>
+
+samtools view -bSq 30 Cox1_hischmanniella_MgRice_sorted.bam > Cox1_hischmanniella_MgRice_q30.bam
+
+
+#to choose heteroplasmy site:
+https://www.sciencedirect.com/science/article/pii/S0002929710003708
+
+bam-readcount -q 20 -w 1 -f NC_024275.1_wo111R.fasta qscore30_Lud_trimmed_mitowo111R_sorted.bam
+
+qsub -q formation.q -l hostname=nodeX -cwd -b y abyss-pe k=35 in=\'ebola1.fastq ebola2.fastq\' name=k35
+	
+ls | xargs -i mv {} {}.fastq to change all the files name in a folder with extension .fastq
+
+
+
+spades.py --careful --nanopore nano_merged_trimmedq8-reads.fastq.gz \ –pe1-1 MgVN18_S1_1.fastq.gz –pe1-2  MgVN18_S1_2.fastq.gz
+
+
+seqtk seq -s 11 -f 0.5 MgLud_trimmed_q20_pair1.fastq.gz > reads1.fq
+> >seqtk seq -s 11 -f 0.5 MgLud_trimmed_q20_pair2.fastq.gz > reads2.fq
+
+###replace : with _
+sed -i "s/\:/_/g" Ra.fasta  
+tr -d ' hh’ to remove hh
+
+
+
+#rename fasta name
+seqkit replace -p "(\d+)" -r '{nr}' purge_nano_canu_cleaned_306scf.fasta > purge_nano_canu_cleaned_306scf_renamed2.fasta
+
+replace space to tab
+perl -p -i -e 's/ /\t/g' MgBl_al_red1.bed
+
+bwa mem SCUBAT_masurca.fasta  /data3/projects/graminicola_analysis/Hiseq_Mg/MgVN18_S1_1.fastq.gz /data3/projects/graminicola_analysis/Hiseq_Mg/MgVN18_S1_2.fastq.gz | samtools sort -O BAM -o bwa_scubat_masurca_alignment.bam
+
+
+
+#self blast
+blastn -task megablast -db overCoverage_morethan0_lst.fasta -query overCoverage_morethan0_lst_query.fasta -evalue 1e-25 -culling_limit 2 -outfmt 7 -num_threads 16
+
+minimap2:
+minimap2 -t 8 -x asm5 -a overCoverage_morethan0_lst.fasta overCoverage_morethan0_lst_query.fasta > minimap2_scaffolds_overcoveraged__itself2.sam
+
+#copy files from sever to computer:
+phanthi@bioinfo-nas3.ird.fr:/data3/projects/graminicola_analysis/SECOND-VN18/postassembly/duplication_check/
+
+#take fasta sequence from id
+perl -ne 'if(/^>(\S+)/){$c=$i{$1}}$c?print:chomp;$i{$_}=1 if @ARGV' ids.file fasta.file
+
+grep -wFf FAMID.txt data.txt
+where:
+•	-f FAMID.txt tells grep to read the patterns from the file
+•	-F tells grep that the patterns are plain strings so it can pick an appropriate matching engine
+•	-w tells grep to only match patterns that form a whole word (so if you accidentally get "FAM" in the pattern file, you don't match every line of the data file)
+
+
+
+#map sequence and extract unmmaped reads
+
+
+bowtie2-build SCUBAT_masurca.fa SCUBAT_masurca
+bowtie2 -x SCUBAT_masurca -p 4 -L 10 -1 -2 –S .sam --un-conc ./unmapped.fq --al-conc ./mapped.fq
+
+#run circos:
+ make conf file, data file and run simply: ./bin/circos -conf cicos.conf
+
+
+
+#asembler unmaped endosymbiont :
+spades.py --careful -k 21,33,55,77,99 -m 450 -t 8 -o Spades_mg_Rice_unmmaped --pe1-1 Mg_Rice_unmapped_pair1.fastq.gz --pe1-2 Mg_Rice_unmapped_pair2.fastq.gz
+
+blastn -task megablast -query Mg_Lud_unpair_unmapped_mito.fasta -db  /data/projects/banks/NT/nt -outfmt '6 qseqid staxids bitscore std sscinames sskingdoms stitle' -culling_limit 5 -num_threads 8 -evalue 1e-25 -out Mg_Lud_blastn_NCBInt_alignment.tsv
+
+perl -lane 'BEGIN{open(A,"Mg_Lud_nematoda_scf_list.txt"); while(<A>){chomp; $k{$_}++}}
+            print $_ if defined($k{$F[0]}); ' Mg_Lud_blastn_NCBInt_alignment.txt > out.txt
+
+
+#extract sam files
+LC_ALL=C grep -w -F -f idFile.txt  < in.sam > subset.sam
+
+cat in.sam | grep -f idFile.txt > out.sam
+
+##print line xx
+cat GCF_000002035.5_GRCz10_genomic.gff | awk ' NR==621884 { print $0 } '
+
+#filter row with condition
+awk '{ if ($7 == 6) { print } }'
+
+awk -F "\t" '{ if(($7 == 6) && ($8 >= 11000000)) { print } }'
+
+#cut fasta header:
+cat Transcriptome_Ref_Graminicola.reformated.fa | awk -F _ '/^>/ { print $1"_"$2"_"$3"_"$4"_"$5 } /^[A-Z]/ {print $1}' | grep ">" | head
+
+
+
+grep "Ascomycota" Mg_Lud_blobtools.blobDB.table.txt > Ascomycota.blobDB.table.txt
+cut -f1 Ascomycota.blobDB.table.txt > Ascomycota_scf_list.txt
+perl -ne 'if(/^>(\S+)/){$c=$i{$1}}$c?print:chomp;$i{$_}=1 if @ARGV' Ascomycota_scf_list.txt Mg_Lud_unpair_unmapped_mito.fasta > Ascomycota_scf.fasta
+cat Mg_Lud_blastn_NCBInt_alignment.tsv | grep -f Ascomycota_scf_list.txt > Ascomycota_blastn.tsv
+
+
+#When the mouse got trouble. Just stop all the run was crossed!
+killall -KILL import
+
+	
+
+#search a list of a table
+awk -F '\t' 'NR==FNR {id[$1]; next} $1 in id' list_of_HGT.txt output.iprscan > list_of_HGT_interproscan2.txt
+
+
+grep -v "0[/|]0" <in.vcf >out.vcf
+
+
+awk '$20~/^0[/|]0/' isolates_canu_snp_rm1.1_vn18.recode.vcf > isolates_canu_snp_only0.0_vn18.recode.vcf
+
+agat_sp_statistics.pl –gff
+
+
+vcftools --vcf globalAnalysis.GATKVARIANTFILTRATION.vcf --max-missing 0.8 --maf 0.05 --recode --remove-indels --out isolates_canu_maf0.05_onlysnps.vcf
+
+
+bcftools query -f '%CHROM %POS  %REF  %ALT [ %TGT]\n' file.vcf
+
+whatshap phase -o phased_MgL1.vcf -r purge_nano_canu_cleaned_306scf.fasta --sample MgL1 phased_MgBaliY2017.vcf MgL1.PICARDTOOLSMARKDUPLICATES.bam
+
+whatshap phase -o phased_MgL2Y2017.vcf -r purge_nano_canu_cleaned_306scf.fasta --sample MgL2Y2017 phased_MgBorneoY2017.vcf MgL2Y2017.down50_sorted.PICARDTOOLSMARKDUPLICATES.bam
+
+
+remove 1/1, 1/3 in MgVn8 (column 10 in vcf):
+awk '$10!~/^1/' gen_canu_1.1.vcf > gen_canu_1.1_rm_11vn.vcf
+ 
+take only 1/1 in vcf file
+grep  “1/1”
+
+samtools view -u -f 1 -F 12 canu_306scf_vs_Hiseq166x.bam | samtools sort -n -o canu_306scf_vs_Hiseq166x_second_mp_stn.bam
+
+
+bamToFastq -i canu_306scf_vs_Hiseq166x_second_mp_stn.bam -fq canu_306scf_vs_Hiseq166x_mapped_1_R1.fastq -fq2 canu_306scf_vs_Hiseq166x_mapped_2_R2.fastq
+
+
+###count_frequency in collum
+cut -f3 passed_4g_ld.txt | sort | uniq -ci | awk '{print $2,$1}' > distances_vs_4g_count.txt
+
+
+###extract_SNP base on regions in vcf file
+
+vcftools --vcf iso_canu_homo_snp_mis0.8_maf0.05_filter_cm.vcf --bed CDS_regions.bed --out cds_regions_snps_homo_canu_isolates --recode –keep-INFO-all
+
+
+#vcf to GDS
+snpgdsVCF2GDS("my.vcf", "my.gds")
+snpgdsSummary("my.gds")
+genofile <- openfn.gds("my.gds")
+
+#dendogram
+dissMatrix  <-  snpgdsDiss(genofile , sample.id=NULL, snp.id=NULL, autosome.only=TRUE,remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, num.thread=10, verbose=TRUE)
+snpHCluster <-  snpgdsHCluster(dist, sample.id=NULL, need.mat=TRUE, hang=0.25)
+cutTree <- snpgdsCutTree(snpHCluster, z.threshold=15, outlier.n=5, n.perm = 5000, samp.group=NULL,col.outlier="red", col.list=NULL, pch.outlier=4, pch.list=NULL,label.H=FALSE, label.Z=TRUE, verbose=TRUE)
+
+#pca
+sample.id <- read.gdsn(index.gdsn(genofile, "sample.id"))
+pop_code <- read.gdsn(index.gdsn(genofile, "sample.id")
+pca <- snpgdsPCA(genofile)
+tab <- data.framesample.id = pca$sample.id,pop = factor(pop_code)[match(pca$sample.id, sample.id)],EV1 = pca$eigenvect[,1],EV2 = pca$eigenvect[,2],stringsAsFactors = FALSE)
+plot(tab$EV2, tab$EV1, col=as.integer(tab$pop),xlab="eigenvector 2", ylab="eigenvector 1")
+legend("topleft", legend=levels(tab$pop), pch="o", col=1:nlevels(tab$pop))
+
+
+https://www.unix.com/shell-programming-and-scripting/214303-calculate-average-column-based-value-another-column.html
+
+#remove secondary reads
+samtools view -h -F 0x900 filename.bam
+
+
+ruby -pe 'File.open("select_list.txt").each { |i| puts i if i =~ /\$\_/ }' ../spades_blastncbi/spades_hiseq_blastn.tsv > list_tst
+
+
+First, sort the alignment
+> samtools sort [input.bam] [output_stub]
+sort the alignment
+to export unmapped reads from assembly.bam to fastq files (# for paired ends)
+> bam2fastq --no-aligned --force --strict -o unmapped#.fq [assembly.bam]
+Output will be in unmapped_1.fq and unmapped_2.fq
+to export mapped reads from assembly.bam to fastq files (# for paired ends)
+> bam2fastq --aligned --force --strict -o mapped#.fq [assembly.bam]
+Output will be in mapped_1.fq and unmapped_2.fq
+
+
+
+
+/usr/local/genometools-1.5.9/bin/gt gff3 -retainids –addintrons
+
+--ryo “%[qt]c[bels]\n%p[is]”
+
+
+#Write value 200 if if greater than 200
+awk '{print $1,$2,($3>100)? 1 : $3}' infile.txt > outfile.txt
+
+#replace word in a file
+sed -i 's/mg/C/g' CNV_ZMgP1_w100_cov__max200
+
+#calculate 
+awk '{$4 = ($1+$2+$3)/3; $5 = ($1+$2)/$3; print}' data.txt
+
+
+##add a column at the end with the same value
+
+awk '$(NF+1) = "fill_color=lblue"' link.tx
